@@ -16,6 +16,7 @@ end
 require_relative "lib/discourse_post_geoip/ip_mask"
 require_relative "lib/discourse_post_geoip/location"
 require_relative "lib/discourse_post_geoip/recorder"
+require_relative "lib/discourse_post_geoip/payload"
 
 register_asset "stylesheets/common/post-geoip.scss"
 
@@ -64,25 +65,18 @@ after_initialize do
         (SiteSetting.discourse_post_geoip_show_ip ||
           SiteSetting.discourse_post_geoip_show_location)
     },
-  ) do
-    record = object.discourse_post_geoip_record
-    next if record.blank?
+  ) { DiscoursePostGeoip::Payload.for_record(object.discourse_post_geoip_record) }
 
-    ip = record.ip_address.to_s
-    payload = {}
-
-    if SiteSetting.discourse_post_geoip_show_ip
-      payload[:ip] = DiscoursePostGeoip::IpMask.mask(
-        ip,
-        ipv4_visible_octets: SiteSetting.discourse_post_geoip_ipv4_visible_octets,
-        ipv6_visible_groups: SiteSetting.discourse_post_geoip_ipv6_visible_groups,
-      )
-    end
-
-    if SiteSetting.discourse_post_geoip_show_location
-      payload[:location] = DiscoursePostGeoip::Location.display(record)
-    end
-
-    payload.compact_blank.presence
-  end
+  # Shown when the user card is opened by clicking an avatar. UserSerializer
+  # inherits from UserCardSerializer, so restrict this to the card itself to
+  # avoid querying for every user in user lists.
+  add_to_serializer(
+    :user_card,
+    :geoip,
+    include_condition: -> {
+      instance_of?(UserCardSerializer) && SiteSetting.discourse_post_geoip_enabled &&
+        (SiteSetting.discourse_post_geoip_show_ip ||
+          SiteSetting.discourse_post_geoip_show_location)
+    },
+  ) { DiscoursePostGeoip::Payload.for_user(object) }
 end

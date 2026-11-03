@@ -35,29 +35,34 @@ module DiscoursePostGeoip
       {}
     end
 
-    # Builds the location string for display, honouring the granularity setting.
+    # Builds the location string for a post record, honouring the granularity
+    # setting.
     def display(record)
       return if record.blank?
 
       cache_location!(record)
-
-      parts =
-        case SiteSetting.discourse_post_geoip_location_granularity.to_s
-        when "country"
-          [record.country]
-        when "region"
-          [record.country, record.region]
-        else
-          [record.country, record.region, record.city]
-        end
-
-      parts.compact_blank.uniq.join(" ").presence
+      format(country: record.country, region: record.region, city: record.city)
     rescue StandardError => e
       Discourse.warn_exception(
         e,
         message: "discourse-post-geoip could not display the location of post #{record&.post_id}",
       )
       nil
+    end
+
+    # Joins the available levels according to the granularity setting.
+    def format(country: nil, region: nil, city: nil, granularity: SiteSetting.discourse_post_geoip_location_granularity)
+      parts =
+        case granularity.to_s
+        when "country"
+          [country]
+        when "region"
+          [country, region]
+        else
+          [country, region, city]
+        end
+
+      parts.compact_blank.uniq.join(" ").presence
     end
 
     # Looks the location up and stores it when the record has not been

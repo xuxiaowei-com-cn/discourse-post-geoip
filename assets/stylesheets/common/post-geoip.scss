@@ -25,3 +25,21 @@
     color: var(--primary-low-mid);
   }
 }
+
+.post-geoip-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15em 0.5em;
+
+  &__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+  }
+
+  &__item + &__item::before {
+    content: "·";
+    color: var(--primary-low-mid);
+  }
+}
