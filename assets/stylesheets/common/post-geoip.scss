@@ -44,9 +44,19 @@
   }
 }
 
-.user-card .names .post-geoip-metadata {
+.user-card .first-row .names .post-geoip-metadata {
   margin-top: 0.25em;
   font-size: var(--font-0);
+
+  .post-geoip-metadata__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+
+    .desc {
+      display: inline;
+    }
+  }
 }
 
 .user-profile-geoip {
