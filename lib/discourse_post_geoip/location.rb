@@ -53,19 +53,16 @@ module DiscoursePostGeoip
       nil
     end
 
-    # Joins the available levels according to the granularity setting.
-    def format(country: nil, region: nil, city: nil, granularity: SiteSetting.discourse_post_geoip_location_granularity)
-      parts =
-        case granularity.to_s
-        when "country"
-          [country]
-        when "region"
-          [country, region]
-        else
-          [country, region, city]
-        end
+    LEVELS = %w[country region city].freeze
 
-      parts.compact_blank.uniq.join(" ").presence
+    # Joins the levels selected in the multi-select granularity setting.
+    # The setting is a pipe-separated list (e.g. "country|region").
+    def format(country: nil, region: nil, city: nil, granularity: SiteSetting.discourse_post_geoip_location_granularity)
+      selected = Array(granularity).flat_map { |value| value.to_s.split("|") }.map(&:strip)
+      levels = LEVELS.select { |level| selected.include?(level) }
+      available = { "country" => country, "region" => region, "city" => city }
+
+      levels.map { |level| available[level] }.compact_blank.uniq.join(" ").presence
     end
 
     def private_ip?(ip)

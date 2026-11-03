@@ -8,7 +8,7 @@ RSpec.describe DiscoursePostGeoip::Location do
       DiscoursePostGeoip::Record.new(country: "中国", region: "浙江", city: "杭州")
     end
 
-    after { SiteSetting.discourse_post_geoip_location_granularity = "city" }
+    after { SiteSetting.discourse_post_geoip_location_granularity = "country|region" }
 
     it "shows the country only" do
       SiteSetting.discourse_post_geoip_location_granularity = "country"
@@ -16,17 +16,22 @@ RSpec.describe DiscoursePostGeoip::Location do
     end
 
     it "shows the country and region" do
-      SiteSetting.discourse_post_geoip_location_granularity = "region"
+      SiteSetting.discourse_post_geoip_location_granularity = "country|region"
       expect(described_class.display(record)).to eq("中国 浙江")
     end
 
     it "shows the country, region and city" do
-      SiteSetting.discourse_post_geoip_location_granularity = "city"
+      SiteSetting.discourse_post_geoip_location_granularity = "country|region|city"
       expect(described_class.display(record)).to eq("中国 浙江 杭州")
     end
 
+    it "supports selecting non-consecutive levels" do
+      SiteSetting.discourse_post_geoip_location_granularity = "country|city"
+      expect(described_class.display(record)).to eq("中国 杭州")
+    end
+
     it "falls back to the levels that are known" do
-      SiteSetting.discourse_post_geoip_location_granularity = "city"
+      SiteSetting.discourse_post_geoip_location_granularity = "country|region|city"
       record.city = nil
       expect(described_class.display(record)).to eq("中国 浙江")
     end

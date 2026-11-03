@@ -6,8 +6,8 @@ plugins:
   discourse_post_geoip_show_location:
     default: true
   discourse_post_geoip_location_granularity:
-    type: enum
-    default: region
+    type: list
+    default: "country|region"
     choices:
       - country
       - region

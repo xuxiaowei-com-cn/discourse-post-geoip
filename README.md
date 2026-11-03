@@ -46,7 +46,7 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `discourse_post_geoip_enabled` | 关 | 插件总开关；默认关闭，开启后才记录和显示 |
 | `discourse_post_geoip_show_ip` | 开 | 显示部分 IP |
 | `discourse_post_geoip_show_location` | 开 | 显示 IP 归属地 |
-| `discourse_post_geoip_location_granularity` | `region` | 归属地显示范围：`country`、`region`、`city`；默认到省 |
+| `discourse_post_geoip_location_granularity` | `country\|region` | 归属地显示范围，可多选：`country`、`region`、`city`；默认国家+省 |
 | `discourse_post_geoip_ipv4_visible_octets` | 2 | IPv4 保留显示的段数（1-3） |
 | `discourse_post_geoip_ipv6_visible_groups` | 4 | IPv6 保留显示的组数（1-7） |
 | `discourse_post_geoip_show_in_private_messages` | 开 | 私信中也记录并显示 |
