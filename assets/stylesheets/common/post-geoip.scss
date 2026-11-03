@@ -44,8 +44,9 @@
   }
 }
 
-.user-card .metadata .post-geoip-metadata {
-  flex: 1 0 100%;
+.user-card .names .post-geoip-metadata {
+  margin-top: 0.25em;
+  font-size: var(--font-0);
 }
 
 .user-profile-geoip {
