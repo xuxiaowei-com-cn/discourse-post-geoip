@@ -11,6 +11,7 @@
 - 可配置归属地显示范围：国家、省、市。
 - 站点设置可分别关闭部分 IP、归属地的显示；可调整掩码保留的段数；私信默认也记录并显示。
 - 点击用户头像打开的用户卡片中，显示用户表 `users.ip_address` 对应 IP 的部分 IP 与归属地。
+- 用户主页（`/u/<username>` 及其 summary 等标签页）同样显示部分 IP 与归属地。
 - 删除帖子时默认保留 IP 记录；可在设置中改为同步删除。
 
 ## 安装
@@ -95,7 +96,7 @@ WHERE post_id = 123;
 - 完整 IP 只保存在服务端数据库中，默认仅管理员可通过数据库查看。
 - 私信帖子默认也记录 IP；如不希望记录，请关闭 `discourse_post_geoip_show_in_private_messages`。
 - 删除帖子默认保留 IP 记录；如需同步删除，请打开 `discourse_post_geoip_delete_on_post_destroy`。
-- 用户卡片使用 `users.ip_address`（Discourse 记录的用户 IP），同样只输出掩码和归属地，并受上述开关控制。
+- 用户卡片与用户主页使用 `users.ip_address`（Discourse 记录的用户 IP），同样只输出掩码和归属地，并受上述开关控制。
 
 ## 开发
 

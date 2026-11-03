@@ -79,4 +79,15 @@ after_initialize do
           SiteSetting.discourse_post_geoip_show_location)
     },
   ) { DiscoursePostGeoip::Payload.for_user(object) }
+
+  # Shown on the user profile page (including /u/<username>/summary).
+  add_to_serializer(
+    :user,
+    :geoip,
+    include_condition: -> {
+      instance_of?(UserSerializer) && SiteSetting.discourse_post_geoip_enabled &&
+        (SiteSetting.discourse_post_geoip_show_ip ||
+          SiteSetting.discourse_post_geoip_show_location)
+    },
+  ) { DiscoursePostGeoip::Payload.for_user(object) }
 end
