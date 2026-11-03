@@ -41,7 +41,10 @@ module DiscoursePostGeoip
       return if record.blank?
 
       cache_location!(record)
-      format(country: record.country, region: record.region, city: record.city)
+      value = format(country: record.country, region: record.region, city: record.city)
+      return value if value.present?
+
+      private_ip_label(record.ip)
     rescue StandardError => e
       Discourse.warn_exception(
         e,
@@ -63,6 +66,24 @@ module DiscoursePostGeoip
         end
 
       parts.compact_blank.uniq.join(" ").presence
+    end
+
+    def private_ip?(ip)
+      address = IpMask.parse(ip)
+      return false if address.nil?
+
+      address.private? || address.loopback? || address.link_local?
+    rescue StandardError
+      false
+    end
+
+    def private_ip_label(ip)
+      return if !private_ip?(ip)
+
+      I18n.t(
+        "discourse_post_geoip.private_ip",
+        locale: SiteSetting.default_locale.presence || :en,
+      )
     end
 
     # Looks the location up and stores it when the record has not been

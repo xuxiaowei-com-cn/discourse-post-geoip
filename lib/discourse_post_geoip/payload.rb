@@ -44,7 +44,12 @@ module DiscoursePostGeoip
 
       if SiteSetting.discourse_post_geoip_show_location
         data = Location.lookup(ip)
-        payload[:location] = Location.format(**data) if data.present?
+        payload[:location] =
+          if data.present?
+            Location.format(**data)
+          else
+            Location.private_ip_label(ip)
+          end
       end
 
       payload.compact_blank.presence

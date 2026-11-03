@@ -31,4 +31,16 @@ RSpec.describe DiscoursePostGeoip::Location do
       expect(described_class.display(record)).to eq("中国 浙江")
     end
   end
+
+  describe ".private_ip?" do
+    it "detects private and loopback IPv4 addresses" do
+      expect(described_class.private_ip?("192.168.1.1")).to be(true)
+      expect(described_class.private_ip?("10.0.0.1")).to be(true)
+      expect(described_class.private_ip?("127.0.0.1")).to be(true)
+    end
+
+    it "returns false for public addresses" do
+      expect(described_class.private_ip?("223.5.5.5")).to be(false)
+    end
+  end
 end

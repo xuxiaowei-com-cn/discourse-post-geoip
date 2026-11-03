@@ -10,3 +10,5 @@ zh_CN:
     discourse_post_geoip_ipv6_visible_groups: "IPv6 保留显示的组数，其余组隐藏。"
     discourse_post_geoip_show_in_private_messages: "在私信帖子中也记录并显示 IP 信息。"
     discourse_post_geoip_delete_on_post_destroy: "删除帖子时同步删除对应的 IP 记录。默认关闭，即删除帖子后仍保留其 IP 记录。"
+  discourse_post_geoip:
+    private_ip: "内网"

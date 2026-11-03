@@ -86,7 +86,7 @@ WHERE post_id = 123;
 归属地使用 Discourse 的 `DiscourseIpInfo`（MaxMind GeoLite2-City，路径为 `vendor/data/GeoLite2-City.mmdb`），按站点默认语言返回地名，例如 `zh_CN` 下为中文。
 
 - 发帖时查询一次，国家、省、市写入 `discourse_post_geoip_records`，之后直接读库。
-- 数据库不存在或 IP 为内网地址时，只显示部分 IP，不显示归属地。
+- 数据库不存在时只显示部分 IP；IP 为内网地址时归属地显示为「内网」。
 - 归属地精度取决于 MaxMind 数据库，中国城市可能存在只到省份或国家的情况。
 
 ## 隐私说明
