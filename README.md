@@ -6,7 +6,7 @@
 
 - 发帖时把请求 IP 写入独立数据表（Discourse 本身已不再保存帖子 IP）。
 - 帖子用户名下方显示掩码后的 IP，例如 `114.114.*.*`（IPv4）或 `2001:db8:1234:5678::`（IPv6）。
-- 帖子用户名下方显示 IP 归属地，例如 `中国 浙江 杭州`，数据来自 Discourse 自带的 MaxMind GeoLite2-City 数据库。
+- 帖子用户名下方显示 IP 归属地，默认到省（例如 `中国 浙江`），可配置到市（例如 `中国 浙江 杭州`），数据来自 Discourse 自带的 MaxMind GeoLite2-City 数据库。
 - 归属地在发帖时查询一次，并把国家、省、市写入数据库；之后显示时直接读库，不再重复查询。
 - 可配置归属地显示范围：国家、省、市。
 - 站点设置可分别关闭部分 IP、归属地的显示；可调整掩码保留的段数；私信默认也记录并显示。
@@ -46,7 +46,7 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `discourse_post_geoip_enabled` | 关 | 插件总开关；默认关闭，开启后才记录和显示 |
 | `discourse_post_geoip_show_ip` | 开 | 显示部分 IP |
 | `discourse_post_geoip_show_location` | 开 | 显示 IP 归属地 |
-| `discourse_post_geoip_location_granularity` | `city` | 归属地显示范围：`country`、`region`、`city` |
+| `discourse_post_geoip_location_granularity` | `region` | 归属地显示范围：`country`、`region`、`city`；默认到省 |
 | `discourse_post_geoip_ipv4_visible_octets` | 2 | IPv4 保留显示的段数（1-3） |
 | `discourse_post_geoip_ipv6_visible_groups` | 4 | IPv6 保留显示的组数（1-7） |
 | `discourse_post_geoip_show_in_private_messages` | 开 | 私信中也记录并显示 |

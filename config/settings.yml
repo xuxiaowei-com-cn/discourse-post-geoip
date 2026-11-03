@@ -7,7 +7,7 @@ plugins:
     default: true
   discourse_post_geoip_location_granularity:
     type: enum
-    default: city
+    default: region
     choices:
       - country
       - region

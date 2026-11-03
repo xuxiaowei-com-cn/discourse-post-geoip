@@ -5,7 +5,7 @@ zh_CN:
     discourse_post_geoip_enabled: "开启后记录每次发帖时的用户 IP，并在帖子、用户卡片和用户主页显示部分 IP 与归属地。默认关闭。"
     discourse_post_geoip_show_ip: "在帖子用户名下方显示部分 IP。"
     discourse_post_geoip_show_location: "在帖子用户名下方显示 IP 归属地。"
-    discourse_post_geoip_location_granularity: "IP 归属地的显示范围：国家、省、市。"
+    discourse_post_geoip_location_granularity: "IP 归属地的显示范围：国家、省、市。默认显示到省。"
     discourse_post_geoip_ipv4_visible_octets: "IPv4 保留显示的段数，其余段显示为 *。"
     discourse_post_geoip_ipv6_visible_groups: "IPv6 保留显示的组数，其余组隐藏。"
     discourse_post_geoip_show_in_private_messages: "在私信帖子中也记录并显示 IP 信息。"
