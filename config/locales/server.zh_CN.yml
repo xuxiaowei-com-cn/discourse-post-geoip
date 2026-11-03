@@ -2,7 +2,7 @@
 
 zh_CN:
   site_settings:
-    discourse_post_geoip_enabled: "记录每次发帖时的用户 IP，并在帖子用户名下方显示部分 IP 和 IP 归属地。"
+    discourse_post_geoip_enabled: "开启后记录每次发帖时的用户 IP，并在帖子、用户卡片和用户主页显示部分 IP 与归属地。默认关闭。"
     discourse_post_geoip_show_ip: "在帖子用户名下方显示部分 IP。"
     discourse_post_geoip_show_location: "在帖子用户名下方显示 IP 归属地。"
     discourse_post_geoip_location_granularity: "IP 归属地的显示范围：国家、省、市。"

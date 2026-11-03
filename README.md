@@ -1,6 +1,6 @@
 # discourse-post-geoip
 
-记录每次发帖时的用户 IP，并在帖子用户名下方显示**部分 IP**与**IP 归属地**，两者均可在站点设置中分别开关。
+记录每次发帖时的用户 IP，并在帖子、用户卡片和用户主页显示**部分 IP**与**IP 归属地**。插件默认关闭，需在站点设置中开启；部分 IP 与归属地可在站点设置中分别开关。
 
 ## 功能
 
@@ -43,7 +43,7 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `discourse_post_geoip_enabled` | 开 | 插件总开关；关闭后不再记录，也不再显示 |
+| `discourse_post_geoip_enabled` | 关 | 插件总开关；默认关闭，开启后才记录和显示 |
 | `discourse_post_geoip_show_ip` | 开 | 显示部分 IP |
 | `discourse_post_geoip_show_location` | 开 | 显示 IP 归属地 |
 | `discourse_post_geoip_location_granularity` | `city` | 归属地显示范围：`country`、`region`、`city` |

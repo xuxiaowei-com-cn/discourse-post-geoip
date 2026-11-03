@@ -2,7 +2,7 @@
 
 en:
   site_settings:
-    discourse_post_geoip_enabled: "Record the IP address used to create each post and show it (masked) under the author's username."
+    discourse_post_geoip_enabled: "Enable recording and display of post IP addresses. Off by default."
     discourse_post_geoip_show_ip: "Show the masked IP address under the post author's username."
     discourse_post_geoip_show_location: "Show the IP location under the post author's username."
     discourse_post_geoip_location_granularity: "How much of the IP location to show: country, region (province/state) or city."
