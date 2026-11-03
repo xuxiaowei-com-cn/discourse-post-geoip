@@ -1,0 +1,104 @@
+# discourse-post-geoip
+
+记录每次发帖时的用户 IP，并在帖子用户名下方显示**部分 IP**与**IP 归属地**，两者均可在站点设置中分别开关。
+
+## 功能
+
+- 发帖时把请求 IP 写入独立数据表（Discourse 本身已不再保存帖子 IP）。
+- 帖子用户名下方显示掩码后的 IP，例如 `114.114.*.*`（IPv4）或 `2001:db8:1234:5678::`（IPv6）。
+- 帖子用户名下方显示 IP 归属地，例如 `中国 浙江 杭州`，数据来自 Discourse 自带的 MaxMind GeoLite2-City 数据库。
+- 归属地在发帖时查询一次，并把国家、省、市写入数据库；之后显示时直接读库，不再重复查询。
+- 可配置归属地显示范围：国家、省、市。
+- 站点设置可分别关闭部分 IP、归属地的显示；可调整掩码保留的段数；私信默认也记录并显示。
+- 删除帖子时默认保留 IP 记录；可在设置中改为同步删除。
+
+## 安装
+
+把本仓库放到 Discourse 的 `plugins/discourse-post-geoip` 目录，然后执行迁移并重启：
+
+```bash
+cd /var/www/discourse
+su discourse -c 'RAILS_ENV=production bundle exec rake db:migrate'
+```
+
+Docker Compose 部署可在 `docker-compose.yml` 的 `web` 服务中挂载本仓库：
+
+```yaml
+volumes:
+  - /path/to/discourse-post-geoip:/var/www/discourse/plugins/discourse-post-geoip
+```
+
+官方 `discourse/discourse` 镜像启动时默认跳过插件 JS 构建（`SKIP_EMBER_CLI_COMPILE=1`），因此需要在启动前编译一次插件前端资源：
+
+```bash
+cd /var/www/discourse
+su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:precompile:build_plugins'
+```
+
+之后重新创建容器，启动脚本会自动执行 `assets:precompile` 编译插件前端资源。
+
+## 站点设置
+
+| 设置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `discourse_post_geoip_enabled` | 开 | 插件总开关；关闭后不再记录，也不再显示 |
+| `discourse_post_geoip_show_ip` | 开 | 显示部分 IP |
+| `discourse_post_geoip_show_location` | 开 | 显示 IP 归属地 |
+| `discourse_post_geoip_location_granularity` | `city` | 归属地显示范围：`country`、`region`、`city` |
+| `discourse_post_geoip_ipv4_visible_octets` | 2 | IPv4 保留显示的段数（1-3） |
+| `discourse_post_geoip_ipv6_visible_groups` | 4 | IPv6 保留显示的组数（1-7） |
+| `discourse_post_geoip_show_in_private_messages` | 开 | 私信中也记录并显示 |
+| `discourse_post_geoip_delete_on_post_destroy` | 关 | 删除帖子时同步删除 IP 记录 |
+
+设置位置：管理后台 → 设置 → 插件 → `discourse-post-geoip`。
+
+## 数据表
+
+表名：`discourse_post_geoip_records`
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | integer | 主键 |
+| `topic_id` | integer | 话题 ID（非空） |
+| `post_id` | integer | 帖子 ID（非空，唯一索引） |
+| `user_id` | integer | 发帖用户 ID |
+| `ip_address` | inet | 发帖时的完整 IP |
+| `country` | string | 国家（发帖时查询并缓存） |
+| `region` | string | 省/州（发帖时查询并缓存） |
+| `city` | string | 城市（发帖时查询并缓存） |
+| `geolocated_ip` | inet | 已查询过归属地的 IP |
+| `created_at` / `updated_at` | timestamp | 时间戳 |
+
+`geolocated_ip` 与 `ip_address` 不一致时（例如手动修改了 `ip_address`），下次显示会自动重新查询归属地并写回缓存：
+
+```sql
+-- 把某个帖子的 IP 改成一个公网 IP
+UPDATE discourse_post_geoip_records
+SET ip_address = '223.5.5.5'
+WHERE post_id = 123;
+```
+
+刷新帖子页面即可看到新的部分 IP 与归属地。注意：插件只记录安装之后新发布的帖子，已有帖子没有记录。
+
+## IP 归属地
+
+归属地使用 Discourse 的 `DiscourseIpInfo`（MaxMind GeoLite2-City，路径为 `vendor/data/GeoLite2-City.mmdb`），按站点默认语言返回地名，例如 `zh_CN` 下为中文。
+
+- 发帖时查询一次，国家、省、市写入 `discourse_post_geoip_records`，之后直接读库。
+- 数据库不存在或 IP 为内网地址时，只显示部分 IP，不显示归属地。
+- 归属地精度取决于 MaxMind 数据库，中国城市可能存在只到省份或国家的情况。
+
+## 隐私说明
+
+- 客户端永远拿不到完整 IP，只能拿到掩码后的部分 IP。
+- 完整 IP 只保存在服务端数据库中，默认仅管理员可通过数据库查看。
+- 私信帖子默认也记录 IP；如不希望记录，请关闭 `discourse_post_geoip_show_in_private_messages`。
+- 删除帖子默认保留 IP 记录；如需同步删除，请打开 `discourse_post_geoip_delete_on_post_destroy`。
+
+## 开发
+
+纯 Ruby 掩码逻辑的单元测试：
+
+```bash
+bundle exec rspec plugins/discourse-post-geoip/spec/lib/discourse_post_geoip/ip_mask_spec.rb
+```

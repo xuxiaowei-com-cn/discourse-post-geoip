@@ -1,0 +1,27 @@
+.topic-meta-data .names:has(.post-geoip-info) {
+  flex-wrap: wrap;
+}
+
+.post-geoip-info {
+  order: 99;
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6em;
+  margin-top: 0.15em;
+  font-size: var(--font-down-1);
+  line-height: var(--line-height-medium);
+  color: var(--primary-medium);
+
+  &__item + &__item::before {
+    content: "·";
+    margin-right: 0.6em;
+    color: var(--primary-low-mid);
+  }
+
+  &__label {
+    margin-right: 0.25em;
+    color: var(--primary-low-mid);
+  }
+}

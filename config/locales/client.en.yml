@@ -1,0 +1,4 @@
+en:
+  discourse_post_geoip:
+    ip: "IP"
+    location: "Location"

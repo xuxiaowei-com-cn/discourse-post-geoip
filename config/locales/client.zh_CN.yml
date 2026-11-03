@@ -1,0 +1,4 @@
+zh_CN:
+  discourse_post_geoip:
+    ip: "IP"
+    location: "归属地"

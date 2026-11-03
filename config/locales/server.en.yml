@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+en:
+  site_settings:
+    discourse_post_geoip_enabled: "Record the IP address used to create each post and show it (masked) under the author's username."
+    discourse_post_geoip_show_ip: "Show the masked IP address under the post author's username."
+    discourse_post_geoip_show_location: "Show the IP location under the post author's username."
+    discourse_post_geoip_location_granularity: "How much of the IP location to show: country, region (province/state) or city."
+    discourse_post_geoip_ipv4_visible_octets: "Number of leading IPv4 octets to keep visible. The remaining octets are shown as *."
+    discourse_post_geoip_ipv6_visible_groups: "Number of leading IPv6 groups to keep visible. The remaining groups are hidden."
+    discourse_post_geoip_show_in_private_messages: "Also record and show IP information on private message posts."
+    discourse_post_geoip_delete_on_post_destroy: "Delete the IP record when its post is deleted. Off by default, so IP records of deleted posts are kept."
