@@ -35,11 +35,28 @@ RSpec.describe DiscoursePostGeoip::Recorder do
     end
 
     it "stores the captured request headers" do
-      described_class.record(post, "114.114.114.114", { "CF-Connecting-IP" => "203.0.113.5" })
+      described_class.record(
+        post,
+        "114.114.114.114",
+        request_headers: { "CF-Connecting-IP" => "203.0.113.5" },
+      )
 
       expect(post.reload.discourse_post_geoip_record.request_headers).to eq(
         "CF-Connecting-IP" => "203.0.113.5",
       )
+    end
+
+    it "stores the user agent and referer" do
+      described_class.record(
+        post,
+        "114.114.114.114",
+        user_agent: "Mozilla/5.0 (compatible; test)",
+        referer: "https://example.com/t/hello/1",
+      )
+
+      record = post.reload.discourse_post_geoip_record
+      expect(record.user_agent).to eq("Mozilla/5.0 (compatible; test)")
+      expect(record.referer).to eq("https://example.com/t/hello/1")
     end
 
     it "does not record anything when the plugin is disabled" do

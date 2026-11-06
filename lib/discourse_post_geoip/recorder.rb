@@ -6,7 +6,7 @@ module DiscoursePostGeoip
   module Recorder
     module_function
 
-    def record(post, ip_address, request_headers = nil)
+    def record(post, ip_address, request_headers: nil, user_agent: nil, referer: nil)
       return if post.blank? || ip_address.blank?
       return if !SiteSetting.discourse_post_geoip_enabled
       return if private_message?(post) &&
@@ -21,6 +21,8 @@ module DiscoursePostGeoip
       record.post_number = post.post_number
       record.ip_address = normalized_ip
       record.request_headers = request_headers if request_headers.present?
+      record.user_agent = user_agent if user_agent.present?
+      record.referer = referer if referer.present?
 
       location = Location.lookup(normalized_ip)
       if location.present?

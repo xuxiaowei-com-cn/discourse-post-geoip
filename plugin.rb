@@ -60,7 +60,9 @@ after_initialize do
     DiscoursePostGeoip::Recorder.record(
       post,
       opts[:ip_address],
-      DiscoursePostGeoip::RequestHeaders.current,
+      request_headers: DiscoursePostGeoip::RequestHeaders.current,
+      user_agent: opts[:user_agent],
+      referer: opts[:referrer],
     )
   end
 
