@@ -38,6 +38,24 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
       )
     end
 
+    it "joins repeated header values given as an array" do
+      SiteSetting.discourse_post_geoip_request_headers = "X-Forwarded-For"
+
+      expect(
+        described_class.read(
+          request_with("X-Forwarded-For" => ["203.0.113.5", " 70.41.3.18 ", nil]),
+        ),
+      ).to eq("X-Forwarded-For" => "203.0.113.5, 70.41.3.18")
+    end
+
+    it "keeps a single element array as a plain value" do
+      SiteSetting.discourse_post_geoip_request_headers = "X-Real-IP"
+
+      expect(described_class.read(request_with("X-Real-IP" => ["203.0.113.5"]))).to eq(
+        "X-Real-IP" => "203.0.113.5",
+      )
+    end
+
     it "ignores header names that are not valid" do
       SiteSetting.discourse_post_geoip_request_headers = "bad header|X-Real-IP"
 

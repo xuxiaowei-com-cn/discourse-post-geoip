@@ -42,8 +42,8 @@ module DiscoursePostGeoip
       values = {}
 
       names.each do |name|
-        value = header_value(headers, name)
-        values[name] = value.to_s.strip if value.present?
+        value = normalize_value(header_value(headers, name))
+        values[name] = value if value.present?
       end
 
       values.presence
@@ -74,6 +74,19 @@ module DiscoursePostGeoip
 
     def normalize_name(name)
       name.to_s.strip.sub(/\AHTTP_/i, "").upcase.tr("-", "_")
+    end
+
+    # Rack exposes a repeated header as an array on some servers. Join it the
+    # same way HTTP combines repeated field lines, so the stored value is always
+    # a string instead of the result of Array#to_s.
+    def normalize_value(value)
+      return if value.nil?
+
+      if value.is_a?(Array)
+        value.flatten.map { |part| part.to_s.strip }.reject(&:blank?).join(", ").presence
+      else
+        value.to_s.strip.presence
+      end
     end
 
     def report(error)
