@@ -8,6 +8,7 @@ en:
     discourse_post_geoip_location_granularity: "Which parts of the IP location to show. Select one or more: country, region (province/state), city. Defaults to country and region."
     discourse_post_geoip_ipv4_visible_octets: "Number of leading IPv4 octets to keep visible. The remaining octets are shown as *."
     discourse_post_geoip_ipv6_visible_groups: "Number of leading IPv6 groups to keep visible. The remaining groups are hidden."
+    discourse_post_geoip_request_header: "Read the IP address from this request header instead of the connection IP, for example CF-Connecting-IP or X-Real-IP. Leave empty to use the connection IP. For comma-separated values such as X-Forwarded-For the leftmost value that parses as an IP is used; when the header is missing or holds no valid IP the connection IP is kept. Only use a header that your CDN or reverse proxy sets (or overwrites), otherwise clients can forge their IP."
     discourse_post_geoip_show_in_private_messages: "Also record and show IP information on private message posts."
     discourse_post_geoip_delete_on_post_destroy: "Delete the IP record when its post is deleted. Off by default, so IP records of deleted posts are kept."
   discourse_post_geoip:

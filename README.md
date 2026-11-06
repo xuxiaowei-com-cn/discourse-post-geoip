@@ -10,6 +10,7 @@
 - 归属地在发帖时查询一次，并把国家、省、市写入数据库；之后显示时直接读库，不再重复查询。
 - 可配置归属地显示范围：国家、省、市。
 - 站点设置可分别关闭部分 IP、归属地的显示；可调整掩码保留的段数；私信默认也记录并显示。
+- 可指定从某个请求头读取 IP（如 CDN 的 `CF-Connecting-IP`），适配反向代理 / CDN 场景。
 - 点击用户头像打开的用户卡片中，显示用户表 `users.ip_address` 对应 IP 的部分 IP 与归属地。
 - 用户主页（`/u/<username>` 及其 summary 等标签页）同样显示部分 IP 与归属地。
 - 删除帖子时默认保留 IP 记录；可在设置中改为同步删除。
@@ -49,10 +50,31 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `discourse_post_geoip_location_granularity` | `country\|region` | 归属地显示范围，可多选：`country`、`region`、`city`；默认国家+省 |
 | `discourse_post_geoip_ipv4_visible_octets` | 2 | IPv4 保留显示的段数（1-3） |
 | `discourse_post_geoip_ipv6_visible_groups` | 4 | IPv6 保留显示的组数（1-7） |
+| `discourse_post_geoip_request_header` | 空 | 从指定请求头读取 IP（如 `CF-Connecting-IP`）；留空使用连接 IP |
 | `discourse_post_geoip_show_in_private_messages` | 开 | 私信中也记录并显示 |
 | `discourse_post_geoip_delete_on_post_destroy` | 关 | 删除帖子时同步删除 IP 记录 |
 
 设置位置：管理后台 → 设置 → 插件 → `discourse-post-geoip`。
+
+## 自定义请求头 IP
+
+站点在 CDN 或反向代理之后时，连接 IP 往往是代理的地址。把 `discourse_post_geoip_request_header` 设为边缘节点写入的请求头，插件就优先记录该请求头里的 IP：
+
+| 场景 | 可填写的请求头 |
+| --- | --- |
+| Cloudflare | `CF-Connecting-IP` |
+| Nginx / 通用反向代理 | `X-Real-IP` |
+| 多级代理链路 | `X-Forwarded-For` |
+
+取值规则：
+
+- 仅接受能解析为 IP 的值，其余情况（请求头缺失、值为空或不是 IP）回退到连接 IP，不会写入脏数据。
+- 逗号分隔的值（如 `X-Forwarded-For: 203.0.113.5, 70.41.3.18`）取最左侧可解析为 IP 的值；IPv4 尾部的端口（`203.0.113.5:8080`）会被忽略，IPv4-mapped IPv6（`::ffff:203.0.113.5`）会归一化为 IPv4。
+- 请求头名大小写不敏感，Rack 形式（`HTTP_CF_CONNECTING_IP`）同样可用。
+
+> **安全提醒**：只应使用由 CDN / 反向代理**设置或覆盖**的请求头。若该请求头可以由客户端任意提交，用户就能伪造 IP 与归属地。
+>
+> 本设置只影响本插件写入的 `discourse_post_geoip_records`；Discourse 自身的 `users.ip_address`、速率限制等仍使用连接 IP，需要真实 IP 时请同时配置反向代理的 `real_ip` / 可信代理。
 
 ## 数据表
 
@@ -123,6 +145,7 @@ ORDER BY created_at DESC;
 - 私信帖子默认也记录 IP；如不希望记录，请关闭 `discourse_post_geoip_show_in_private_messages`。
 - 删除帖子默认保留 IP 记录；如需同步删除，请打开 `discourse_post_geoip_delete_on_post_destroy`。
 - 用户卡片与用户主页使用 `users.ip_address`（Discourse 记录的用户 IP），同样只输出掩码和归属地，并受上述开关控制。
+- 配置 `discourse_post_geoip_request_header` 后，记录的是该请求头的值（仍只保存在服务端），其可信度取决于该请求头是否由代理强制写入。
 
 ## 开发
 
