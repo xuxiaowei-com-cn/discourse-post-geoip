@@ -17,7 +17,7 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
 
   describe ".read" do
     it "returns nil when no header is configured" do
-      expect(described_class.read(request_with("CF-Connecting-IP" => "203.0.113.5"))).to be_nil
+      expect(described_class.read(request_with("CF-Connecting-IP" => ["203.0.113.5"]))).to be_nil
     end
 
     it "returns the configured headers that are present" do
@@ -27,32 +27,32 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
         described_class.read(
           request_with("CF-Connecting-IP" => "203.0.113.5", "X-Other" => "1"),
         ),
-      ).to eq("CF-Connecting-IP" => "203.0.113.5")
+      ).to eq("CF-Connecting-IP" => ["203.0.113.5"])
     end
 
     it "matches header names case-insensitively and supports the Rack env form" do
       SiteSetting.discourse_post_geoip_request_headers = "CF-Connecting-IP"
 
       expect(described_class.read(request_with("HTTP_CF_CONNECTING_IP" => "203.0.113.5"))).to eq(
-        "CF-Connecting-IP" => "203.0.113.5",
+        "CF-Connecting-IP" => ["203.0.113.5"],
       )
     end
 
-    it "joins repeated header values given as an array" do
+    it "keeps repeated header values given as an array" do
       SiteSetting.discourse_post_geoip_request_headers = "X-Forwarded-For"
 
       expect(
         described_class.read(
           request_with("X-Forwarded-For" => ["203.0.113.5", " 70.41.3.18 ", nil]),
         ),
-      ).to eq("X-Forwarded-For" => "203.0.113.5, 70.41.3.18")
+      ).to eq("X-Forwarded-For" => ["203.0.113.5", "70.41.3.18"])
     end
 
-    it "keeps a single element array as a plain value" do
+    it "stores a single value as a one element array" do
       SiteSetting.discourse_post_geoip_request_headers = "X-Real-IP"
 
       expect(described_class.read(request_with("X-Real-IP" => ["203.0.113.5"]))).to eq(
-        "X-Real-IP" => "203.0.113.5",
+        "X-Real-IP" => ["203.0.113.5"],
       )
     end
 
@@ -60,7 +60,7 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
       SiteSetting.discourse_post_geoip_request_headers = "bad header|X-Real-IP"
 
       expect(described_class.read(request_with("X-Real-IP" => "203.0.113.5"))).to eq(
-        "X-Real-IP" => "203.0.113.5",
+        "X-Real-IP" => ["203.0.113.5"],
       )
     end
 
@@ -68,7 +68,7 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
       SiteSetting.discourse_post_geoip_enabled = false
       SiteSetting.discourse_post_geoip_request_headers = "X-Real-IP"
 
-      expect(described_class.read(request_with("X-Real-IP" => "203.0.113.5"))).to be_nil
+      expect(described_class.read(request_with("X-Real-IP" => ["203.0.113.5"]))).to be_nil
     end
   end
 
@@ -76,9 +76,9 @@ RSpec.describe DiscoursePostGeoip::RequestHeaders do
     it "keeps the values until cleared" do
       SiteSetting.discourse_post_geoip_request_headers = "X-Real-IP"
 
-      described_class.capture(request_with("X-Real-IP" => "203.0.113.5"))
+      described_class.capture(request_with("X-Real-IP" => ["203.0.113.5"]))
 
-      expect(described_class.current).to eq("X-Real-IP" => "203.0.113.5")
+      expect(described_class.current).to eq("X-Real-IP" => ["203.0.113.5"])
 
       described_class.clear
 

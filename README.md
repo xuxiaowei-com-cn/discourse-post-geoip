@@ -68,13 +68,13 @@ CF-Connecting-IP | X-Real-IP | X-Forwarded-For
 发帖时插件会把其中**实际存在**的请求头及其值写入 `discourse_post_geoip_records.request_headers`：
 
 ```json
-{"CF-Connecting-IP": "203.0.113.5", "X-Real-IP": "203.0.113.5"}
+{"CF-Connecting-IP": ["203.0.113.5"], "X-Real-IP": ["203.0.113.5"]}
 ```
 
 规则：
 
 - 请求头名大小写不敏感，Rack 形式（`HTTP_CF_CONNECTING_IP`）同样匹配；
-- 同一个请求头出现多次时（Rack 在某些服务器上以数组给出），按 HTTP 语义用 `, ` 合并为一个字符串；
+- 每个命中的请求头都以**数组**形式保存，单值也是长度为 1 的数组；同一请求头出现多次（Rack 在某些服务器上以数组给出）会展开后完整保留，不会丢值；
 - 只记录配置里列出、且请求中确实存在的请求头，缺失的不会写入，也不会写成空串；
 - 列表里不符合请求头命名的项（含空格等）会被忽略；
 - 值仅保存在服务端数据库，不会出现在帖子、用户卡片等任何接口返回里。
@@ -85,6 +85,11 @@ CF-Connecting-IP | X-Real-IP | X-Forwarded-For
 
 ```sql
 SELECT post_id, topic_id, post_number, host(ip_address) AS ip, request_headers
+FROM discourse_post_geoip_records
+WHERE post_id = 123;
+
+-- 取某个请求头的第一个值
+SELECT request_headers -> 'CF-Connecting-IP' ->> 0 AS first_value
 FROM discourse_post_geoip_records
 WHERE post_id = 123;
 ```
@@ -104,7 +109,7 @@ WHERE post_id = 123;
 | `country` | string | 国家（发帖时查询并缓存） |
 | `region` | string | 省/州（发帖时查询并缓存） |
 | `city` | string | 城市（发帖时查询并缓存） |
-| `request_headers` | jsonb | 发帖请求中配置的请求头值，如 `{"CF-Connecting-IP": "203.0.113.5"}`；未配置或未命中为 `NULL` |
+| `request_headers` | jsonb | 发帖请求中配置的请求头值，每个头一个数组，如 `{"CF-Connecting-IP": ["203.0.113.5"]}`；未配置或未命中为 `NULL` |
 | `user_agent` | text | 发帖请求的 User-Agent |
 | `referer` | text | 发帖请求的 Referer（取 `HTTP_REFERER`，Discourse 内部参数名为 `referrer`） |
 | `geolocated_ip` | inet | 已查询过归属地的 IP |

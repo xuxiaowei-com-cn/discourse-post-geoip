@@ -38,11 +38,11 @@ RSpec.describe DiscoursePostGeoip::Recorder do
       described_class.record(
         post,
         "114.114.114.114",
-        request_headers: { "CF-Connecting-IP" => "203.0.113.5" },
+        request_headers: { "CF-Connecting-IP" => ["203.0.113.5"] },
       )
 
       expect(post.reload.discourse_post_geoip_record.request_headers).to eq(
-        "CF-Connecting-IP" => "203.0.113.5",
+        "CF-Connecting-IP" => ["203.0.113.5"],
       )
     end
 

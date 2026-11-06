@@ -29,7 +29,7 @@ module DiscoursePostGeoip
       Thread.current[STORE_KEY] = nil
     end
 
-    # Returns { "CF-Connecting-IP" => "203.0.113.5" } with the configured
+    # Returns { "CF-Connecting-IP" => ["203.0.113.5"] } with the configured
     # headers that are present in the request, or nil when there is none.
     def read(request)
       return if request.nil?
@@ -42,8 +42,8 @@ module DiscoursePostGeoip
       values = {}
 
       names.each do |name|
-        value = normalize_value(header_value(headers, name))
-        values[name] = value if value.present?
+        parts = normalize_values(header_value(headers, name))
+        values[name] = parts if parts.present?
       end
 
       values.presence
@@ -76,16 +76,17 @@ module DiscoursePostGeoip
       name.to_s.strip.sub(/\AHTTP_/i, "").upcase.tr("-", "_")
     end
 
-    # Rack exposes a repeated header as an array on some servers. Join it the
-    # same way HTTP combines repeated field lines, so the stored value is always
-    # a string instead of the result of Array#to_s.
-    def normalize_value(value)
-      return if value.nil?
-
-      if value.is_a?(Array)
-        value.flatten.map { |part| part.to_s.strip }.reject(&:blank?).join(", ").presence
+    # Every header value is stored as an array, so a repeated header is kept
+    # instead of being stringified by Array#to_s. Rack exposes a repeated
+    # header as an array on some servers; single values become one element.
+    def normalize_values(value)
+      case value
+      when nil
+        []
+      when Array
+        value.flatten.map { |part| part.to_s.strip }.reject(&:blank?)
       else
-        value.to_s.strip.presence
+        [value.to_s.strip].reject(&:blank?)
       end
     end
 
