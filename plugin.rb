@@ -15,8 +15,10 @@ end
 
 require_relative "lib/discourse_post_geoip/ip_mask"
 require_relative "lib/discourse_post_geoip/location"
+require_relative "lib/discourse_post_geoip/request_headers"
 require_relative "lib/discourse_post_geoip/recorder"
 require_relative "lib/discourse_post_geoip/payload"
+require_relative "lib/discourse_post_geoip/posts_controller_extension"
 
 register_asset "stylesheets/common/post-geoip.scss"
 
@@ -45,10 +47,21 @@ after_initialize do
     ).call
   end
 
+  # The request itself is only reachable from the controller, so the values of
+  # the configured headers are captured there and kept for the duration of the
+  # request.
+  reloadable_patch do
+    ::PostsController.prepend(DiscoursePostGeoip::PostsControllerExtension)
+  end
+
   # PostCreator passes the request IP in its options (posts_controller,
   # PostCreator#create), so it is available here before it is discarded.
   on(:post_created) do |post, opts, _user|
-    DiscoursePostGeoip::Recorder.record(post, opts[:ip_address])
+    DiscoursePostGeoip::Recorder.record(
+      post,
+      opts[:ip_address],
+      DiscoursePostGeoip::RequestHeaders.current,
+    )
   end
 
   on(:post_destroyed) do |post, _opts, _user|

@@ -6,7 +6,7 @@ module DiscoursePostGeoip
   module Recorder
     module_function
 
-    def record(post, ip_address)
+    def record(post, ip_address, request_headers = nil)
       return if post.blank? || ip_address.blank?
       return if !SiteSetting.discourse_post_geoip_enabled
       return if private_message?(post) &&
@@ -20,6 +20,7 @@ module DiscoursePostGeoip
       record.topic_id = post.topic_id
       record.post_number = post.post_number
       record.ip_address = normalized_ip
+      record.request_headers = request_headers if request_headers.present?
 
       location = Location.lookup(normalized_ip)
       if location.present?

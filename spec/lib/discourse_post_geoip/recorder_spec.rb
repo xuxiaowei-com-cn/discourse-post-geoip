@@ -34,6 +34,14 @@ RSpec.describe DiscoursePostGeoip::Recorder do
       expect(reply.reload.discourse_post_geoip_record.post_number).to eq(2)
     end
 
+    it "stores the captured request headers" do
+      described_class.record(post, "114.114.114.114", { "CF-Connecting-IP" => "203.0.113.5" })
+
+      expect(post.reload.discourse_post_geoip_record.request_headers).to eq(
+        "CF-Connecting-IP" => "203.0.113.5",
+      )
+    end
+
     it "does not record anything when the plugin is disabled" do
       SiteSetting.discourse_post_geoip_enabled = false
 

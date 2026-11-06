@@ -8,6 +8,7 @@ en:
     discourse_post_geoip_location_granularity: "Which parts of the IP location to show. Select one or more: country, region (province/state), city. Defaults to country and region."
     discourse_post_geoip_ipv4_visible_octets: "Number of leading IPv4 octets to keep visible. The remaining octets are shown as *."
     discourse_post_geoip_ipv6_visible_groups: "Number of leading IPv6 groups to keep visible. The remaining groups are hidden."
+    discourse_post_geoip_request_headers: "Store the values of these request headers with every post, for example CF-Connecting-IP or X-Real-IP. Type a header name and press Enter to add it; add as many as you need. Only headers that are present in the request are stored, and the values are never sent to the client. Do not add sensitive headers such as Authorization or Cookie: their values are saved to the database in plain text."
     discourse_post_geoip_show_in_private_messages: "Also record and show IP information on private message posts."
     discourse_post_geoip_delete_on_post_destroy: "Delete the IP record when its post is deleted. Off by default, so IP records of deleted posts are kept."
   discourse_post_geoip:

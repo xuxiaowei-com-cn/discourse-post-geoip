@@ -10,6 +10,7 @@
 - 归属地在发帖时查询一次，并把国家、省、市写入数据库；之后显示时直接读库，不再重复查询。
 - 可配置归属地显示范围：国家、省、市。
 - 站点设置可分别关闭部分 IP、归属地的显示；可调整掩码保留的段数；私信默认也记录并显示。
+- 可配置多个请求头（如 CDN 写入的 `CF-Connecting-IP`），把它们的值一并存入记录表的 `request_headers` 字段。
 - 点击用户头像打开的用户卡片中，显示用户表 `users.ip_address` 对应 IP 的部分 IP 与归属地。
 - 用户主页（`/u/<username>` 及其 summary 等标签页）同样显示部分 IP 与归属地。
 - 删除帖子时默认保留 IP 记录；可在设置中改为同步删除。
@@ -49,10 +50,42 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `discourse_post_geoip_location_granularity` | `country\|region` | 归属地显示范围，可多选：`country`、`region`、`city`；默认国家+省 |
 | `discourse_post_geoip_ipv4_visible_octets` | 2 | IPv4 保留显示的段数（1-3） |
 | `discourse_post_geoip_ipv6_visible_groups` | 4 | IPv6 保留显示的组数（1-7） |
+| `discourse_post_geoip_request_headers` | 空 | 记录这些请求头的值，列表形式，输入后回车添加，可添加多个 |
 | `discourse_post_geoip_show_in_private_messages` | 开 | 私信中也记录并显示 |
 | `discourse_post_geoip_delete_on_post_destroy` | 关 | 删除帖子时同步删除 IP 记录 |
 
 设置位置：管理后台 → 设置 → 插件 → `discourse-post-geoip`。
+
+## 记录请求头
+
+`discourse_post_geoip_request_headers` 是列表设置：在输入框里填请求头名称，按回车（或点 `+`）即可添加，可以添加多个，例如：
+
+```
+CF-Connecting-IP | X-Real-IP | X-Forwarded-For
+```
+
+发帖时插件会把其中**实际存在**的请求头及其值写入 `discourse_post_geoip_records.request_headers`：
+
+```json
+{"CF-Connecting-IP": "203.0.113.5", "X-Real-IP": "203.0.113.5"}
+```
+
+规则：
+
+- 请求头名大小写不敏感，Rack 形式（`HTTP_CF_CONNECTING_IP`）同样匹配；
+- 只记录配置里列出、且请求中确实存在的请求头，缺失的不会写入，也不会写成空串；
+- 列表里不符合请求头命名的项（含空格等）会被忽略；
+- 值仅保存在服务端数据库，不会出现在帖子、用户卡片等任何接口返回里。
+
+> **安全提醒**：不要添加 `Authorization`、`Cookie`、`X-CSRF-Token` 等敏感请求头——它们的值会以明文写入数据库。请求头由客户端可控，若用于判断用户身份或 IP，请确认它由 CDN / 反向代理强制覆盖。
+
+查询示例：
+
+```sql
+SELECT post_id, topic_id, post_number, host(ip_address) AS ip, request_headers
+FROM discourse_post_geoip_records
+WHERE post_id = 123;
+```
 
 ## 数据表
 
@@ -69,6 +102,7 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `country` | string | 国家（发帖时查询并缓存） |
 | `region` | string | 省/州（发帖时查询并缓存） |
 | `city` | string | 城市（发帖时查询并缓存） |
+| `request_headers` | jsonb | 发帖请求中配置的请求头值，如 `{"CF-Connecting-IP": "203.0.113.5"}`；未配置或未命中为 `NULL` |
 | `geolocated_ip` | inet | 已查询过归属地的 IP |
 | `created_at` / `updated_at` | timestamp | 时间戳 |
 
