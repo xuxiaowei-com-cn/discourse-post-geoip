@@ -4,7 +4,7 @@
 
 ## 功能
 
-- 发帖时把请求 IP 写入独立数据表（Discourse 本身已不再保存帖子 IP）。
+- 发帖时把请求 IP 写入独立数据表（Discourse 本身已不再保存帖子 IP），同时记录该帖在话题中的楼层（`post_number`）。
 - 帖子用户名下方显示掩码后的 IP，例如 `114.114.*.*`（IPv4）或 `2001:db8:1234:5678::`（IPv6）。
 - 帖子用户名下方显示 IP 归属地，默认到省（例如 `中国 浙江`），可配置到市（例如 `中国 浙江 杭州`），数据来自 Discourse 自带的 MaxMind GeoLite2-City 数据库。
 - 归属地在发帖时查询一次，并把国家、省、市写入数据库；之后显示时直接读库，不再重复查询。
@@ -63,6 +63,7 @@ su discourse -c 'RAILS_ENV=production LOAD_PLUGINS=1 bundle exec rake assets:pre
 | `id` | integer | 主键 |
 | `topic_id` | integer | 话题 ID（非空） |
 | `post_id` | integer | 帖子 ID（非空，唯一索引） |
+| `post_number` | integer | 话题楼层；1 即话题本身（1 楼），2 为第一个回复，以此类推 |
 | `user_id` | integer | 发帖用户 ID |
 | `ip_address` | inet | 发帖时的完整 IP |
 | `country` | string | 国家（发帖时查询并缓存） |
@@ -81,6 +82,31 @@ WHERE post_id = 123;
 ```
 
 刷新帖子页面即可看到新的部分 IP 与归属地。注意：插件只记录安装之后新发布的帖子，已有帖子没有记录。
+
+`post_number` 由发帖时写入。升级到带该列的版本时，迁移会按 `post_id` 从 `posts` 表回填历史记录；只有帖子被物理删除、`posts` 中已无对应行的记录会保持 `NULL`。
+
+常用查询：
+
+```sql
+-- 话题 123 各楼层的 IP 与归属地
+SELECT post_number, host(ip_address) AS ip, country, region, city
+FROM discourse_post_geoip_records
+WHERE topic_id = 123
+ORDER BY post_number;
+
+-- 话题创建者（1 楼）的 IP
+SELECT host(ip_address) AS ip, country, region, city
+FROM discourse_post_geoip_records
+WHERE topic_id = 123 AND post_number = 1;
+
+-- 某用户创建的话题（1 楼）及其 IP
+SELECT topic_id, host(ip_address) AS ip, created_at
+FROM discourse_post_geoip_records
+WHERE user_id = 42 AND post_number = 1
+ORDER BY created_at DESC;
+```
+
+`post_number` 不设唯一索引：Discourse 删除帖子后会复用楼层号，删除帖子又默认保留 IP 记录，两种情况会同时出现。
 
 ## IP 归属地
 

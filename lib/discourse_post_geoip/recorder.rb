@@ -18,6 +18,7 @@ module DiscoursePostGeoip
       record = Record.find_or_initialize_by(post_id: post.id)
       record.user_id = post.user_id
       record.topic_id = post.topic_id
+      record.post_number = post.post_number
       record.ip_address = normalized_ip
 
       location = Location.lookup(normalized_ip)
