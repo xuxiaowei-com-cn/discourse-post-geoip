@@ -20,8 +20,6 @@ plugins:
     default: 4
     min: 1
     max: 7
-  discourse_post_geoip_request_header:
-    default: ""
   discourse_post_geoip_show_in_private_messages:
     default: true
   discourse_post_geoip_delete_on_post_destroy:
